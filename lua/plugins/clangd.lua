@@ -1,0 +1,30 @@
+-- lua/plugins/clangd.lua
+-- return {
+--   {
+--     "neovim/nvim-lspconfig",
+--     opts = {
+--       servers = {
+--         clangd = {
+--           cmd = {
+--             "clangd",
+--             "--background-index",
+--             "--clang-tidy=false",
+--             "--header-insertion=never",
+--             "--completion-style=detailed",
+--             "--query-driver=/*",
+--           },
+--           root_dir = function(fname)
+--             local util = require("lspconfig.util")
+--             return util.root_pattern("compile_commands.json", ".clangd", ".git")(fname) or vim.fs.dirname(fname)
+--           end,
+--         },
+--       },
+--       setup = {
+--         clangd = function(_, opts)
+--           require("lspconfig").clangd.setup(opts)
+--           return true -- Return true to prevent LazyVim extra from overriding this setup
+--         end,
+--       },
+--     },
+--   },
+-- }
