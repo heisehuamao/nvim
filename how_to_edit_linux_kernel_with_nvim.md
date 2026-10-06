@@ -1,0 +1,92 @@
+# How to Edit Kernel Code with Neovim
+
+## Add `.clangd` at the Code Root Directory
+
+Add a `.clangd` file at the Linux kernel source root:
+
+```yaml
+CompileFlags:
+  Add:
+    - "--target=x86_64-linux-gnu"
+    - "-D__KERNEL__"
+    - "-DCONFIG_HAVE_MEMBLOCK"
+    - "-DCONFIG_MEMTEST"
+    - "-Iinclude"
+    - "-Iinclude/uapi"
+    - "-Iinclude/generated"
+    - "-Iinclude/generated/uapi"
+    - "-Iarch/x86/include"
+    - "-Iarch/x86/include/uapi"
+    - "-Iarch/x86/include/generated"
+    - "-Wno-unknown-warning-option"
+    - "-Wno-unused-command-line-argument"
+  Remove:
+    - "-mno-fp-ret-in-387"
+    - "-mpreferred-stack-boundary=3"
+    - "-mskip-rax-setup"
+    - "-mindirect-branch=thunk-extern"
+    - "-mindirect-branch-register"
+    - "-fconserve-stack"
+
+Index:
+  Background: Build
+```
+
+---
+
+## Step 1: Compile the Kernel Objects First
+
+### 1. Ensure Kernel Configuration & Generated Headers Are Ready
+
+```bash
+make defconfig
+make prepare
+make headers_install
+make asm-generic
+```
+
+### 2. Build `init/` Directory to Create `init/.main.o.cmd`
+
+```bash
+make init/
+```
+
+### 3. Generate `compile_commands.json`
+
+```bash
+python3 scripts/clang-tools/gen_compile_commands.py
+```
+
+---
+
+## Step 2: Verify `init/main.c` Is Present
+
+```bash
+grep "init/main.c" compile_commands.json
+```
+
+---
+
+## Step 3: Clear Clangd Cache & Re-open Neovim
+
+```bash
+rm -rf ~/.cache/clangd/index/ .clangd/
+```
+
+---
+
+## Option 1: Fast Kernel Core Build (~1–3 minutes)
+
+```bash
+make -j$(nproc) init/ kernel/ mm/ fs/ ipc/ net/
+python3 scripts/clang-tools/gen_compile_commands.py
+```
+
+---
+
+## Option 2: Build Core + Drivers
+
+```bash
+make -j$(nproc) modules
+python3 scripts/clang-tools/gen_compile_commands.py
+```
